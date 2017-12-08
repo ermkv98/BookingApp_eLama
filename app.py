@@ -1,6 +1,8 @@
 from flask import Flask, request, redirect, url_for, render_template
+from flask_login import login_manager
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required
+from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///common.db'
@@ -8,7 +10,6 @@ app.config['SECRET_KEY'] = 'elama'
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_PASSWORD_SALT'] = 'asdjweklqwejiocimweqwoe'
 db = SQLAlchemy(app)
-
 
 
 roles_users = db.Table('roles_users',
@@ -66,6 +67,7 @@ def index():
 @app.route('/profile/<id>')
 @login_required
 def profile(id):
+    id = current_user.get_id()
     user = User.query.filter_by(id=id).first()
     return render_template('profile.html', user=user)
 
@@ -84,6 +86,7 @@ if __name__ == '__main__':
 
 @app.route('/edit/<id>', methods=['GET', 'POST'])
 def edit(id):
+        id = current_user.get_id()
         new_first_name = request.form.get("new")
         user = User.query.filter_by(id=id).first()
         user.name_first = new_first_name
