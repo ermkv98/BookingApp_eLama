@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://bootswatch.com/4/lux/bootstrap.css"/>
+</head>
+{% block content %}
+<style>
+    div{margin:80px;}
+</style>
+<div class="container">
+    {% from "security/_macros.html" import render_field_with_errors, render_field %}
+    {% include "security/_messages.html" %}
+    <h1>Login</h1>
+    <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+        {{ login_user_form.hidden_tag() }}
+        {{ render_field_with_errors(login_user_form.email, class="form-control", placeholder="Enter Email") }}
+        {{ render_field_with_errors(login_user_form.password, class="form-control", placeholder="Password") }}
+        {{ render_field_with_errors(login_user_form.remember, class="form-check-label", type="checkbox") }}
+        {{ render_field( login_user_form.next, class="btn, btn-primary, btn-block") }}
+        {{ render_field(login_user_form.submit, class="btn") }}
+        {% include "security/_menu.html" %}
+    </form>
+</div>
+
+{% endblock %}
+</html>
+

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="POST">
+    <input type="text" value="{{ user.name_first }}" name="new">
+    <input type="submit" value="Update">
+    <a href="{{ url_for('profile', id)}}">Profile</a>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<head>
+    <link rel="stylesheet" href="https://bootswatch.com/4/lux/bootstrap.css"/>
+</head>
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
+{% include "security/_messages.html" %}
+
+{% block content %}
+<style>
+    div{margin:80px;}
+</style>
+<div class="container">
+  <h1>{{ _('Register') }}</h1>
+  <form action="{{ url_for_security('register') }}" method="POST" name="register_user_form">
+        {{ register_user_form.hidden_tag() }}
+        {{ render_field_with_errors(register_user_form.email, class="form-control", placeholder="Enter Email") }}
+        {{ render_field_with_errors(register_user_form.password, class="form-control", placeholder="Password") }}
+        {% if register_user_form.password_confirm %}
+          {{ render_field_with_errors(register_user_form.password_confirm, class="form-control", placeholder="Confirm Password") }}
+        {% endif %}
+        {{ render_field(register_user_form.submit,  class="btn") }}
+        {% include "security/_menu.html" %}
+  </form>
+</div>
+{% endblock %}
