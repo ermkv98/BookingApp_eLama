@@ -1,5 +1,5 @@
-from flask import Flask, request, redirect, url_for, render_template
-from flask_login import login_manager, LoginManager
+from flask import Flask, request, redirect, url_for, render_template, session, g
+from flask_login import login_manager, LoginManager, AnonymousUserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
 
@@ -10,16 +10,17 @@ app.config['SECRET_KEY'] = 'elama'
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_PASSWORD_SALT'] = 'asdjweklqwejiocimweqwoe'
 db = SQLAlchemy(app)
+
+
 login_manager = LoginManager()
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
-@login_manager.request_loader(callable)
-def load_user(userid):
-    try:
-        return User.query.get(int(userid))
-    except (TypeError, ValueError):
-        pass
+
+login_manager.init_app(app)
 
 
 roles_users = db.Table('roles_users',
@@ -48,6 +49,18 @@ class User(db.Model, UserMixin):
                             backref=db.backref('users', lazy='dynamic'))
     entries = db.relationship('Entry', backref='user', lazy='dynamic')
 
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.id
+
     def __repr__(self):
         return '<User %r>' % self.id
 
@@ -68,9 +81,26 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 
+@login_manager.user_loader
+def load_user(id):
+    try:
+        return User.query.get(int(id))
+    except (TypeError, ValueError):
+        pass
+
+
 @app.before_request
 def global_user():
-    g.user = current_user.get()
+    g.user = current_user
+
+
+# Make current user available on templates
+@app.context_processor
+def inject_user():
+    try:
+        return {'user': g.user}
+    except AttributeError:
+        return {'user': None}
 
 
 @app.route('/')
@@ -79,36 +109,27 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/profile/<id>')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
-def profile(id):
-    if (id == current_user.get_id()):
-        user = User.query.filter_by(id=id).first()
-        return render_template('profile.html', user=user)
+def profile():
+    return render_template('profile.html')
 
 
-@app.route('/post_user', methods=['POST'])
-def post_user():
-    user = User(request.form['username'], request.form['email'])
-    db.session.add(user)
-    db.session.commit()
-    return redirect(url_for('index'))
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
-@app.route('/edit/<id>', methods=['GET', 'POST'])
-def edit(id):
-        new_first_name = request.form.get("new")
-        user = User.query.filter_by(id=id).first()
-        user.name_first = new_first_name
+@app.route('/profile/edit', methods=['POST', 'GET'])
+@login_required
+def edit():
+    user = g.user
+    if request.method == 'POST':
+        user.name_first = request.form.get("new first name")
+        user.name_second = request.form.get("new second name")
+        user.email = request.form.get("new email")
         db.session.commit()
-        return render_template('profile_edit.html', user=user)
+        return redirect(url_for('profile'))
+    return render_template('profile_edit.html', user=g.user)
 
 
 @app.route('/list')
+@login_required
 def list():
     cursor = db.session.cursor(buffered=True)
     select=("SELECT * FROM user")
@@ -116,11 +137,6 @@ def list():
     data = cursor.fetchall()
     db.session.commit()
     return render_template('list.html', data=data)
-
-
-@app.route('/complete/<id>')
-def complete():
-    pass
 
 
 if __name__ == '__main__':
