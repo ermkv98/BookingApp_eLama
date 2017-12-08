@@ -3,15 +3,19 @@
 <head>
     <link rel="stylesheet" href="https://bootswatch.com/4/lux/bootstrap.css"/>
     <meta charset="UTF-8">
-    <title>Profile | {{ user.username }}</title>
+    <title>Profile | {{ user.name_first }}</title>
 </head>
 {% block content %}
 <body>
-
-        <h1>{{ user.username }} - Profile</h1>
-
-        <h2>Email: {{ user.email }}</h2>
-
+    <h1>Profile</h1>
+    <h2>First name: {{ user.name_first }}</h2>
+    <h2>Second mame: {{ user.name_second }}</h2>
+    <h2>Email: {{ user.email }}</h2>
+    <h2>USD: {{user.currency_USD}}</h2>
+    <h2>EUR: {{user.currency_EUR}}</h2>
+    <h2>RUR: {{user.currency_RUR}}</h2>
+    <h3>Confirmed at: {{user.confirmed_at}}</h3>
+    <button type="button" class="btn btn-outline-primary" href='edit' >Edit</button>
 </body>
 {% endblock %}
 </html>
