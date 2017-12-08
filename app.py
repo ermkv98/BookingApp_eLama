@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template
-from flask_login import login_manager
+from flask_login import login_manager, LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
 
@@ -10,6 +10,16 @@ app.config['SECRET_KEY'] = 'elama'
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_PASSWORD_SALT'] = 'asdjweklqwejiocimweqwoe'
 db = SQLAlchemy(app)
+login_manager = LoginManager()
+
+
+
+@login_manager.request_loader(callable)
+def load_user(userid):
+    try:
+        return User.query.get(int(userid))
+    except (TypeError, ValueError):
+        pass
 
 
 roles_users = db.Table('roles_users',
@@ -58,6 +68,11 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 
+@app.before_request
+def global_user():
+    g.user = current_user.get()
+
+
 @app.route('/')
 @login_required
 def index():
@@ -67,9 +82,9 @@ def index():
 @app.route('/profile/<id>')
 @login_required
 def profile(id):
-    id = current_user.get_id()
-    user = User.query.filter_by(id=id).first()
-    return render_template('profile.html', user=user)
+    if (id == current_user.get_id()):
+        user = User.query.filter_by(id=id).first()
+        return render_template('profile.html', user=user)
 
 
 @app.route('/post_user', methods=['POST'])
@@ -86,7 +101,6 @@ if __name__ == '__main__':
 
 @app.route('/edit/<id>', methods=['GET', 'POST'])
 def edit(id):
-        id = current_user.get_id()
         new_first_name = request.form.get("new")
         user = User.query.filter_by(id=id).first()
         user.name_first = new_first_name
