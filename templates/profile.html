@@ -7,10 +7,10 @@
 </head>
 {% block content %}
 <body>
-    <div style="margin: 40px">
+    <div class="col-md-4" style="margin: 40px">
         <h1>
             First name:
-            <average class="text-muted">{{ current_user.name_first }}</average>
+            <average class=" text-muted">{{ current_user.name_first }}</average>
         </h1>
         <h1>
             Second name:
@@ -32,11 +32,27 @@
             USD:
             <small class="text-muted">{{current_user.currency_USD}}</small>
         </h3>
-        <h3>
-            Confirmed at:
-            <small class="text-muted">{{current_user.confirmed_at}}</small>
-        </h3>
         <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/profile/edit'">Edit</button>
+    </div>
+    <div class="col-md-offset-4">
+        <container>
+            <div>
+                <div class="card border-primary mb-3" style="max-width: 30%; margin-left: 2%">
+                    <div class="card-header"><h4>Currency exchange</h4></div>
+
+                <div class="card-body text-primary">
+                  <h1>
+                         USD:
+                        <input type="text" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                    <h1>
+                         USD:
+                        <input type="text" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                </div>
+              </div>
+            </div>
+        </container>
     </div>
 </body>
 {% endblock %}

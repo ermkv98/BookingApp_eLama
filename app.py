@@ -2,6 +2,10 @@ from flask import Flask, request, redirect, url_for, render_template, session, g
 from flask_login import login_manager, LoginManager, AnonymousUserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
+from flask_wtf import Form
+from wtforms import FloatField
+from wtforms.validators import InputRequired, AnyOf
+from datetime import  datetime
 
 
 app = Flask(__name__)
@@ -22,10 +26,9 @@ def load_user(user_id):
 
 login_manager.init_app(app)
 
-
 roles_users = db.Table('roles_users',
-        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+    db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
 
 class Role(db.Model, RoleMixin):
@@ -44,10 +47,12 @@ class User(db.Model, UserMixin):
     currency_EUR = db.Column(db.Float)
     name_first = db.Column(db.String(100))
     name_second = db.Column(db.String(100))
-    confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Role', secondary=roles_users,
                             backref=db.backref('users', lazy='dynamic'))
     entries = db.relationship('Entry', backref='user', lazy='dynamic')
+    whishes = db.relationship('Wish', backref='user', lazy='dynamic')
+    transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
+    plans = db.relationship('Plan', backref='user', lazy='dynamic')
 
     def is_authenticated(self):
         return True
@@ -77,16 +82,37 @@ class Entry(db.Model):
     date = db.Column(db.DateTime)
 
 
+class Wish(db.Model):
+    name = db.Column(db.String(100), unique=True)
+    wish_id = db.Column(db.Integer, primary_key=True)
+    cost_USD = db.Column(db.Float)
+    cost_RUR = db.Column(db.Float)
+    cost_EUR = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+
+class Transaction(db.Model):
+    cost_USD = db.Column(db.Float)
+    cost_RUR = db.Column(db.Float)
+    cost_EUR = db.Column(db.Float)
+    id_to_sent = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    date = db.Column(db.DateTime)
+    transaction_id = db.Column(db.Integer, primary_key=True)
+
+
+class Plan(db.Model):
+    cost_USD = db.Column(db.Float)
+    cost_RUR = db.Column(db.Float)
+    cost_EUR = db.Column(db.Float)
+    name = db.Column(db.String(100), unique=True)
+    month = db.Column(db.String(20))
+    plan_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
-
-
-@login_manager.user_loader
-def load_user(id):
-    try:
-        return User.query.get(int(id))
-    except (TypeError, ValueError):
-        pass
 
 
 @app.before_request
@@ -94,7 +120,6 @@ def global_user():
     g.user = current_user
 
 
-# Make current user available on templates
 @app.context_processor
 def inject_user():
     try:
@@ -106,6 +131,29 @@ def inject_user():
 @app.route('/')
 @login_required
 def index():
+    entry = Entry.query.filter_by(user_id=g.user.id)
+    return render_template('index.html', entry=entry)
+
+
+@app.route('/add_entry', methods=['GET', 'POST'])
+@login_required
+def add_entry():
+    if request.method == 'POST':
+        entry = Entry()
+        entry.user_id = g.user.id
+        entry.date = datetime.now()
+        entry.cost_EUR = request.form.get("EUR")
+        entry.cost_RUR = request.form.get("RUR")
+        entry.cost_USD = request.form.get("USD")
+        g.user.currency_EUR -= float(request.form.get("EUR"))
+        g.user.currency_RUR -= float(request.form.get("RUR"))
+        g.user.currency_USD -= float(request.form.get("USD"))
+        entry.name = request.form.get("Name")
+        entry.category = request.form.get("Category")
+        entry.type = False
+        db.session.add(entry)
+        db.session.commit()
+        return render_template('index.html')
     return render_template('index.html')
 
 
@@ -126,6 +174,49 @@ def edit():
         db.session.commit()
         return redirect(url_for('profile'))
     return render_template('profile_edit.html', user=g.user)
+
+
+@app.route('/transactions', methods=['GET', 'POST'])
+@login_required
+def transactions():
+    return render_template('transactions.html')
+
+
+@app.route('/transactions/add', methods=['GET', 'POST'])
+@login_required
+def add():
+    if request.method == 'POST':
+        g.user.currency_EUR += float(request.form.get("EUR"))
+        g.user.currency_RUR += float(request.form.get("RUR"))
+        g.user.currency_USD += float(request.form.get("USD"))
+        db.session.commit()
+        return redirect(url_for('profile'))
+    return render_template('transactions.html')
+
+
+@app.route('/transactions/send', methods=['GET', 'POST'])
+@login_required
+def send():
+    if request.method == 'POST':
+        send = Transaction()
+        send.cost_EUR = request.form.get("EUR")
+        send.cost_RUR = request.form.get("RUR")
+        send.cost_USD = request.form.get("USD")
+        send.date = datetime.now()
+        send.id_to_sent = request.form.get("id to sent")
+        send.user_id = g.user.id
+        db.session.add(send)
+        db.session.commit()
+        return redirect(url_for('profile'))
+    return render_template('transactions.html')
+
+
+@app.route('/transactions/exchange')
+@login_required
+def exchange():
+    if request.method == 'POST':
+        pass
+    return render_template('transactions.html')
 
 
 @app.route('/list')
