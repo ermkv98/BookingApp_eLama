@@ -1,11 +1,13 @@
 from flask import Flask, request, redirect, url_for, render_template, session, g
 from flask_login import login_manager, LoginManager, AnonymousUserMixin
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, Pagination
 from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
-from flask_wtf import Form
-from wtforms import FloatField
-from wtforms.validators import InputRequired, AnyOf
-from datetime import  datetime
+from flask_wtf import Form, FlaskForm
+from forex_python.converter import CurrencyRates
+from wtforms import FloatField, StringField, PasswordField
+from wtforms.validators import InputRequired, AnyOf, DataRequired
+from datetime import datetime
+from flask_paginate import Pagination, get_page_parameter
 
 
 app = Flask(__name__)
@@ -128,11 +130,13 @@ def inject_user():
         return {'user': None}
 
 
-@app.route('/')
+@app.route('/<int:page_num>')
 @login_required
-def index():
+def index(page_num):
     entry = Entry.query.filter_by(user_id=g.user.id)
-    return render_template('index.html', entry=entry)
+    currency_rate = CurrencyRates()
+    entries = Entry.query.paginate(per_page=5, page=page_num, error_out=True)
+    return render_template('index.html', entry=entry,page_num=page_num, entries=entries, currency_rate=currency_rate)
 
 
 @app.route('/add_entry', methods=['GET', 'POST'])
@@ -153,7 +157,7 @@ def add_entry():
         entry.type = False
         db.session.add(entry)
         db.session.commit()
-        return render_template('index.html')
+        return redirect(url_for('index'))
     return render_template('index.html')
 
 
@@ -179,19 +183,52 @@ def edit():
 @app.route('/transactions', methods=['GET', 'POST'])
 @login_required
 def transactions():
-    return render_template('transactions.html')
+    transaction = Transaction.query.filter_by(user_id=g.user.id, id_to_sent=g.user.id)
+    return render_template('transactions.html', transaction=transaction)
 
 
 @app.route('/transactions/add', methods=['GET', 'POST'])
 @login_required
 def add():
     if request.method == 'POST':
+        entry = Entry()
+        entry.user_id = g.user.id
+        entry.date = datetime.now()
+        entry.cost_EUR = request.form.get("EUR")
+        entry.cost_RUR = request.form.get("RUR")
+        entry.cost_USD = request.form.get("USD")
         g.user.currency_EUR += float(request.form.get("EUR"))
         g.user.currency_RUR += float(request.form.get("RUR"))
         g.user.currency_USD += float(request.form.get("USD"))
+        entry.name = "Popolnenie"
+        entry.category = "Transacia"
+        entry.type = True
+        db.session.add(entry)
         db.session.commit()
-        return redirect(url_for('profile'))
-    return render_template('transactions.html')
+        return redirect(url_for('index'))
+    return render_template('index.html')
+
+
+@app.route('/transactions/decrease', methods=['GET', 'POST'])
+@login_required
+def decrease():
+    if request.method == 'POST':
+        entry = Entry()
+        entry.user_id = g.user.id
+        entry.date = datetime.now()
+        entry.cost_EUR = request.form.get("EUR")
+        entry.cost_RUR = request.form.get("RUR")
+        entry.cost_USD = request.form.get("USD")
+        g.user.currency_EUR -= float(request.form.get("EUR"))
+        g.user.currency_RUR -= float(request.form.get("RUR"))
+        g.user.currency_USD -= float(request.form.get("USD"))
+        entry.name = "Trata"
+        entry.category = "Transacia"
+        entry.type = False
+        db.session.add(entry)
+        db.session.commit()
+        return redirect(url_for('index'))
+    return render_template('index.html')
 
 
 @app.route('/transactions/send', methods=['GET', 'POST'])
@@ -215,8 +252,19 @@ def send():
 @login_required
 def exchange():
     if request.method == 'POST':
-        pass
-    return render_template('transactions.html')
+        currency = CurrencyRates()
+        first = request.form.get('first_currency')
+        second = request.form.get('second_currency')
+        input_currency = request.form.get('input_currency')
+        if first == "EUR":
+            if second == "USD":
+                g.user.currency_EUR -= input_currency
+                g.user.currency_USD += currency.convert(input_currency, first, second)
+            if second == "RUR":
+                g.user.currency_EUR -= input_currency
+                g.user.currency_RUR += currency.convert(input_currency, first, second)
+        return redirect(url_for('index'), first=first, second=second, input_currency=input_currency)
+    return redirect(url_for('index'))
 
 
 @app.route('/list')

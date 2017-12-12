@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://bootswatch.com/4/lux/bootstrap.css"/>
+    <meta charset="UTF-8">
+    <title>Transactions</title>
+</head>
+{% block content %}
+<body>
+    <row class="row-md-12">
+        <container class="col-md-6">
+            <div>
+                <div class="card border-primary mb-3" style="max-width: 30%; margin-left: 2%">
+                    <div class="card-header"><h4>Currency exchange</h4></div>
+
+                <div class="card-body text-primary">
+                  <h1>
+                         USD:
+                        <input type="text" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                    <h1>
+                         USD:
+                        <input type="text" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                </div>
+              </div>
+            </div>
+        </container>
+        <container class="col-md-offset-6">
+            <div  class="card border-primary mb-3" style="max-width: 35%; margin-left: 2%"  >
+                    <div class="card-header"><h4>Add</h4></div>
+                <form class="card-body text-primary" method="POST" action="/transactions/add">
+                    <h1>
+                         USD:
+                        <input type="number" min="0" step="0.001" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                    <h1>
+                         RUR:
+                        <input type="number" min="0" step="0.001" class="text-muted"  name="RUR" value="0.0">
+                    </h1>
+                    <h1>
+                         EUR:
+                        <input type="number" step="0.001" min="0" class="text-muted"  name="EUR" value="0.0">
+                    </h1>
+                    <form>
+                        <input type="submit" class="btn btn-outline-primary" value="Add">
+                    </form>
+                </form>
+              </div>
+            <div class="card border-primary mb-3" style="max-width: 35%; margin-left: 2%;">
+                    <div class="card-header"><h4>Send</h4></div>
+                <form class="card-body text-primary" method="post" action="/transactions/send">
+                  <h1>
+                         USD:
+                        <input type="number" min="0" step="0.001" class="text-muted"  name="USD" value="0.0">
+                    </h1>
+                    <h1>
+                         RUR:
+                        <input type="number" min="0" step="0.001" class="text-muted"  name="RUR" value="0.0">
+                    </h1>
+                    <h1>
+                         EUR:
+                        <input type="number" min="0" step="0.001" class="text-muted"  name="EUR" value="0.0">
+                    </h1>
+                    <h1>
+                        ID to send:
+                        <input type="number" step="any" class="text-muted" name="id to sent" style="max-width: 47%">
+                    </h1>
+                    <form>
+                        <input type="submit" class="btn btn-outline-primary" value="Send">
+                    </form>
+                </form>
+              </div>
+            <div class="col-md-6">
+                <table class="table table-hover">
+                      <thead>
+                        <tr class="thead-dark">
+                          <th scope="col">Type</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">ID</th>
+                          <th scope="col">Amount of currency</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for transaction in transaction %}
+                         <tr>
+                             <td>
+                                 {% if transaction.id_to_sent == g.user.id %}
+                                 Prihod
+                                 {% else %}
+                                 Rashod
+                                 {% endif %}
+                             </td>
+                             <td>{{ transaction.date }}</td>
+                             <td>{{ transaction.id_to_sent }}</td>
+                             <td>EUR: {{ transaction.cost_EUR }} RUR: {{transaction.cost_RUR}} USD:{{transaction.cost_USD}}</td>
+                         </tr>
+                      {% endfor %}
+                      </tbody>
+                </table>
+            </div>
+        </container>
+    </row>
+</body>
+{% endblock %}
+</html>

@@ -7,63 +7,125 @@
 {% block content %}
 <div>
   <div class="row col-md-12 ">
-    <div>
-         <div  class="card border-primary mb-3 col-md-6" style="max-width: 100%; margin-left: 4%"  >
-                    <div class="card-header"><h4>Add Entry</h4></div>
-                <form class="card-body text-primary" method="POST" action="/add_entry" >
-                    <div class="row">
-                         <a style="margin-left:2%">
-                            USD:
-                            <input type="number" min="0" step="0.001" class="text-muted"  name="USD" value="0.0">
-                         </a>
-                         <a style="margin-left:2%">
-                            RUR:
-                             <input type="number" min="0" step="0.001" class="text-muted"  name="RUR" value="0.0">
-                         </a>
-                         <a style="margin-left:2%">
-                             EUR:
-                             <input type="number" step="0.001" min="0" class="text-muted"  name="EUR" value="0.0">
-                         </a>
-                    </div>
-                    <div class="row">
-                        <a style="margin-top:2%; margin-left:2%">
-                             Name:
-                             <input type="text" class="text-muted" name="Name">
-                        </a>
-                        <a style="margin-top:2%; margin-left:2%">
-                               Category:
-                              <input type="text" class="text-muted"  name="Category">
-                        </a>
-                    </div>
-                    <form>
-                        <input style="margin-top:2%; margin-left:2%" type="submit" class="btn btn-outline-primary" value="Add Entry">
-                    </form>
-                </form>
-              </div>
-       <table class="table table-striped table-hover table-bordered col-md-6", style="margin-left: 30px ">
-        <thead class="thead-dark">
-          <tr>
+    <div class="col-md-5">
+        <h1>Entries</h1>
+        <div class="container col-md-offset-4 " >
+                      <button id="addEntry" class="btn btn-outline-primary">Add Entry</button>
+                      <div id="addEntryModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_addEntry">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/add_entry">
+                                 <div class="row">
+                                     <a style="max-width: 20%">
+                                         USD:
+                                         <input type="number" min="0" step="0.01" class="text-muted"  name="USD" value="0.0">
+                                     </a>
+                                     <a style="margin-left:10%; max-width: 20%">
+                                         RUR:
+                                         <input type="number" min="0" step="0.01" class="text-muted"  name="RUR" value="0.0">
+                                     </a>
+                                     <a style="margin-left:10%; max-width: 20%">
+                                         EUR:
+                                         <input type="number" step="0.01" min="0" class="text-muted"  name="EUR" value="0.0">
+                                     </a>
+                                 </div>
+                                 <div class="row">
+                                     <a style="margin-top:2%; max-width: 30%">
+                                         Name:
+                                         <input type="text" class="text-muted" name="Name">
+                                     </a>
+                                     <a style="margin-top:2%; max-width: 30%">
+                                         Category:
+                                         <input type="text" class="text-muted"  name="Category">
+                                     </a>
+                                 </div>
+                                 <form>
+                                     <script>
+                                         var modal_addEntry = document.getElementById('addEntryModal');
+                                         var btn_addEntry = document.getElementById("addEntry");
+                                         var span_addEntry = document.getElementById("close_addEntry");
+                                         btn_addEntry.onclick = function() {modal_addEntry.style.display = "block";}
+                                         span_addEntry.onclick = function() {modal_addEntry.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_addEntry) {modal_addEntry.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" style="margin-top: 5%; margin-left: -3%" value="Add Entry">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+        </div>
+        <div class="container">
+            <table class="table table-striped table-hover table-bordered col-md-6", style="margin-left: 15px ">
+         <thead class="thead-dark">
+           <tr>
             <th>Date</th>
             <th>Category</th>
             <th>Name</th>
             <th>Cost</th>
             <th>Type</th>
           </tr>
-        </thead>
-        <tbody>
+         </thead>
+         <tbody>
         {% for entry in entry %}
           <tr>
             <td>{{ entry.date }}</td>
             <td>{{ entry.category }}</td>
             <td>{{ entry.name }}</td>
             <td>EUR: {{ entry.cost_EUR }} RUR: {{entry.cost_RUR}} USD:{{entry.cost_USD}}</td>
-            <td>Consumption</td>
+            <td>
+                {% if entry.type == True %}
+                Prihod
+                {% else %}
+                Rashod
+                {% endif %}
+            </td>
           </tr>
          {% endfor %}
         </tbody>
-      </table>
-    </div>
+       </table>
+        </div>
 
+    </div>
       <div>
           <div class="card border-secondary col-md-3" style="max-width: 300px; height: 200px; margin-left: 78px">
               <div class="card-body text-primary">
@@ -72,19 +134,232 @@
                     <h3> USD: {{ g.user.currency_USD}}</h3>
               </div>
               <div class="row">
-              <input type="submit" class="btn btn-outline-primary" value="Внести" style="width: 50%">
-              <input type="submit" class="btn btn-outline-primary" value="Списать" style="width: 50%">
+                  <div class="container" style="width: 50%; padding:0%">
+                      <button id="add" class="btn btn-outline-primary" style="width: 100%">Add</button>
+                      <div id="addModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_add">&times;</span>
+                             <form class="card-body text-primary" method="POST" action="/transactions/add">
+                                  <h1>
+                                      USD:
+                                      <input type="number" min="0" step="0.01" class="text-muted"  name="USD" value="0.0">
+                                  </h1>
+                                  <h1>
+                                      RUR:
+                                      <input type="number" min="0" step="0.01" class="text-muted"  name="RUR" value="0.0">
+                                  </h1>
+                                  <h1>
+                                      EUR:
+                                      <input type="number" step="0.01" min="0" class="text-muted"  name="EUR" value="0.0">
+                                  </h1>
+                                 <form>
+                                     <script>
+                                         var modal_add = document.getElementById('addModal');
+                                         var btn_add = document.getElementById("add");
+                                         var span_add = document.getElementById("close_add");
+                                         btn_add.onclick = function() {modal_add.style.display = "block";}
+                                         span_add.onclick = function() {modal_add.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_add) {modal_add.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" value="Add">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+                  </div>
+                  <div class="container" style="width: 50%; padding: 0%">
+                      <button id="decrease" class="btn btn-outline-primary" style="width: 100%;">Decrease</button>
+                      <div id="decreaseModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_decrease">&times;</span>
+                             <form class="card-body text-primary" method="POST" action="/transactions/decrease">
+                                  <h1>
+                                      USD:
+                                      <input type="number" min="0" step="0.01" class="text-muted"  name="USD" value="0.0">
+                                  </h1>
+                                  <h1>
+                                      RUR:
+                                      <input type="number" min="0" step="0.01" class="text-muted"  name="RUR" value="0.0">
+                                  </h1>
+                                  <h1>
+                                      EUR:
+                                      <input type="number" step="0.01" min="0" class="text-muted"  name="EUR" value="0.0">
+                                  </h1>
+                                 <form>
+                                     <script>
+                                         var modal_decrease = document.getElementById('decreaseModal');
+                                         var btn_decrease = document.getElementById("decrease");
+                                         var span_decrease = document.getElementById("close_decrease");
+                                         btn_decrease.onclick = function() {modal_decrease.style.display = "block";}
+                                         span_decrease.onclick = function() {modal_decrease.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_decrease) {modal_decrease.style.display = "none";}}
+                                     </script>
+                                     <input type="submit" class="btn btn-outline-primary" style="width: 100%" value="Decrease">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+                  </div>
               </div>
           </div>
       </div>
     <div>
           <div class="card border-secondary col-md-3" style="max-width: 300px; height: 200px; margin-left: 81px">
-            <label>HUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIH</label>
+              <div class="row">
+                  <h3 style="margin-left:10%; margin-top: 7%">
+                      USD/RUR:
+                      {{ currency_rate.get_rate('USD', 'RUB')}}
+                  </h3>
+              </div>
+              <div class="row">
+                  <h3 style="margin-left: 10%; margin-top:7%">
+                      EUR/RUR:
+                     {{ currency_rate.get_rate('EUR', 'RUB')}}
+                  </h3>
+              </div>
+              <div class="container" style="padding: 0%; width: 100%">
+                   <button id="exchange" style="margin-top: 12%; width: 100%; margin-left: 0%" class="btn btn-outline-primary">Exchange</button>
+                      <div id="exchangeModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_exchange">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/transactions/exchange">
+                                <form>
+                                   <input type="number" step="any" min="0"  class="form-control" style="max-width: 30%" id="input_currency">
+                                      <div>
+                                          <select class="form-control" style="max-width: 30%; margin-top:5%" name="first_currency">
+                                           <option value="RUB" name="RUB">RUR</option>
+                                           <option value="USD" name="USD">USD</option>
+                                           <option value="EUR" name="EUR">EUR</option>
+                                          </select>
+                                      </div>
+                                    <h4 style="margin-top:5%">Exchange to</h4>
+                                         <div>
+                                             <select class="form-control" style="max-width: 30%; margin-top:5%" name="second_currency">
+                                                 <option value="RUR">RUR</option>
+                                                 <option value="USD">USD</option>
+                                                 <option value="EUR">EUR</option>
+                                             </select>
+                                         </div>
+                                </form>
+                                 <form>
+                                     <script>
+                                         var modal_exchange = document.getElementById('exchangeModal');
+                                         var btn_exhacnge = document.getElementById("exchange");
+                                         var span_exchange = document.getElementById("close_exchange");
+                                         btn_exhacnge.onclick = function() {modal_exchange.style.display = "block";}
+                                         span_exchange.onclick = function() {modal_exchange.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_exchange) {modal_exchange.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" style="margin-top: 5%;" value="Exchange">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+              </div>
           </div>
     </div>
   </div>
   <div class="card border-secondary col-md-offset-6" style="max-width: 680px; height: 200px; margin-left: 49%; margin-top: 40px">
       <label>HUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIHUIH</label>
   </div>
+  <div>
+    {% for entry in entries.items %}
+
+        <div class="alert alert-primary" role="alert">
+          {{ entry.name }}
+        </div>
+
+      {% endfor %}
+
+      {% for page in entries.iter_pages(left_edge=3, right_edge=3, left_current=3, right_current=3) %}
+
+        {% if page %}
+
+        {% else %}
+          ...
+        {% endif %}
+
+      {% endfor %}
 </div>
 {% endblock %}
+</div>
