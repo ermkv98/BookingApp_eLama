@@ -176,10 +176,17 @@ def entry_delete(entry_id):
     return redirect(url_for('redirect_to_home'))
 
 
-@app.route('/entry_edit<int:entry_id>')
+@app.route('/entry_edit', methods=['POST', 'GET'])
 @login_required
-def entry_edit(entry_id):
-    pass
+def entry_edit():
+    id = request.form.get('id')
+    entry = Entry.query.filter_by(entry_id=id)
+    entry.category = request.form.get('Category')
+    entry.name = request.form.get('Name')
+    entry.cost_RUR = request.form.get('RUR')
+    entry.cost_EUR = request.form.get('EUR')
+    entry.cost_USD = request.form.get('USD')
+    return redirect(url_for('redirect_to_home'))
 
 
 @app.route('/profile', methods=['GET', 'POST'])
