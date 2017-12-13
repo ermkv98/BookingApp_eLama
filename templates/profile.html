@@ -8,7 +8,8 @@
 </head>
 {% block content %}
 <body>
-    <div class="col-md-4" style="margin: 40px">
+    <div class="row" style="margin: 40px">
+        <div class="col-md-4" >
         <h1>
             First name:
             <average class=" text-muted">{{ current_user.name_first }}</average>
@@ -33,7 +34,236 @@
             USD:
             <small class="text-muted">{{current_user.currency_USD}}</small>
         </h3>
-        <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/profile/edit'">Edit</button>
+          <div class="container" style="padding-left: 0px; margin-top: 2%" >
+                      <button id="editProfile" class="btn btn-outline-primary">Edit</button>
+                      <div id="editProfileModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_editProfile">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/profile/edit">
+                                     <h4>
+                                         First name:
+                                         <input type="text" class="text-muted" value="{{g.user.name_first}}"  name="new first name">
+                                     </h4>
+                                     <h4>
+                                         Second name:
+                                         <input type="text" class="text-muted" value="{{g.user.name_second}}"  name="new second name">
+                                     </h4>
+                                     <h4>
+                                         Email
+                                         <input type="text" class="text-muted" value="{{g.user.email}}"  name="new email">
+                                     </h4>
+                                 <form>
+                                     <script>
+                                         var modal_editProfile = document.getElementById('editProfileModal');
+                                         var btn_editProfile = document.getElementById("editProfile");
+                                         var span_editProfile = document.getElementById("close_editProfile");
+                                         btn_editProfile.onclick = function() {modal_editProfile.style.display = "block";}
+                                         span_editProfile.onclick = function() {modal_editProfile.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_editProfile) {modal_editProfile.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" value="Submit">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+        </div>
+    </div>
+        <div class="col-md-4">
+            <div class="card border-secondary mb-3" style="max-width: 20rem;">
+                <div class="card-header">Tag List</div>
+                <div class="card-body text-secondary">
+                    <div>
+                        {% for tag in tags %}
+                            <a href="{{url_for('tag_remove', tag_id=tag.tag_id)}}">{{ tag.tag_name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+             To remove tag from the list, please, click on it
+             <div class="container" style="padding-left: 0px; margin-top: 2%" >
+                      <button id="tag" class="btn btn-outline-primary">Add Tag</button>
+                      <div id="tagModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_tag">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/tag">
+                                     <h4>
+                                         Tag name:
+                                         <input type="text" class="text-muted"  name="tag">
+                                     </h4>
+                                 <form>
+                                     <script>
+                                         var modal_tag = document.getElementById('tagModal');
+                                         var btn_tag = document.getElementById("tag");
+                                         var span_tag = document.getElementById("close_tag");
+                                         btn_tag.onclick = function() {modal_tag.style.display = "block";}
+                                         span_tag.onclick = function() {modal_tag.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_tag) {modal_tag.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" value="Add Tag">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+        </div>
+        </div>
+        <div class="col-md-offset-4">
+            <div class="card border-secondary mb-3" style="max-width: 20rem;">
+                <div class="card-header">Category List</div>
+                <div class="card-body text-secondary">
+                    <div>
+                        {% for category in categories %}
+                            <a href="{{url_for('category_remove', category_id=category.category_id)}}">{{ category.category_name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+             To remove category from the list, please, click on it
+             <div class="container" style="padding-left: 0px; margin-top: 2%" >
+                      <button id="category" class="btn btn-outline-primary">Add Category</button>
+                      <div id="categoryModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_category">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/category">
+                                     <h4>
+                                         Category name:
+                                         <input type="text" class="text-muted"  name="category">
+                                     </h4>
+                                 <form>
+                                     <script>
+                                         var modal_category = document.getElementById('categoryModal');
+                                         var btn_category = document.getElementById("category");
+                                         var span_category = document.getElementById("close_category");
+                                         btn_category.onclick = function() {modal_category.style.display = "block";}
+                                         span_category.onclick = function() {modal_category.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_category) {modal_category.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" value="Add Category">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+        </div>
+        </div>
     </div>
 </body>
 {% endblock %}

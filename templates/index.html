@@ -18,6 +18,7 @@
             <th>Name</th>
             <th>Cost</th>
             <th>Type</th>
+            <th>Tags</th>
             <th>Operations</th>
           </tr>
          </thead>
@@ -34,6 +35,9 @@
                 {% else %}
                 Rashod
                 {% endif %}
+            </td>
+            <td>
+                {{ entry.tags }}
             </td>
             <td>
                 <a href="{{ url_for('entry_edit', entry_id=entry.entry_id) }}">Edit</a>
@@ -82,6 +86,10 @@
                                      <a style="margin-top:2%; max-width: 30%">
                                          Category:
                                          <input type="text" class="text-muted"  name="Category">
+                                     </a>
+                                      <a style="margin-top:2%; max-width: 30%">
+                                         Tags:
+                                         <input type="text" class="text-muted"  name="Tags">
                                      </a>
                                  </div>
                                  <form>
@@ -278,7 +286,7 @@
                   </h3>
               </div>
               <div class="container" style="padding: 0%; width: 100%">
-                   <button id="exchange" style="margin-top: 12%; width: 100%; margin-left: 0%" class="btn btn-outline-primary">Exchange</button>
+                   <button id="exchange" style="margin-top: 14%; width: 100%" class="btn btn-outline-primary">Exchange</button>
                       <div id="exchangeModal" class="modal">
                         <div class="modal-content">
                            <span class="close" id="close_exchange">&times;</span>
@@ -361,8 +369,91 @@
         </div>
 
      <div class="card border-secondary col-md-offset-6" style="height: 200px; width: 100%; margin-top: 40px; margin-left: 11%">
-              <label>budget list</label>
+         {% for plan in plans %}
+         <h5>Name: {{ plan.name }} Month: {{ plan.month}} USD: {{ plan.cost_USD }} EUR: {{ plan.cost_EUR }} RUR: {{ plan.cost_RUR }}</h5>
+         {% endfor %}
      </div>
+     <div class="container" style="padding-left: 0px; margin-top: 2%; margin-left: 11%" >
+                      <button id="plan_add" class="btn btn-outline-primary">Add Budget Plan</button>
+                      <div id="plan_addModal" class="modal">
+                        <div class="modal-content">
+                           <span class="close" id="close_plan_add">&times;</span>
+                            <form class="card-body text-primary" method="POST" action="/plan_add">
+                                <h5>
+                                    USD:
+                                    <input name="USD" type="number" value="0" min="0" step="0.01">
+                                </h5>
+                                <h5>
+                                    RUR:
+                                    <input name="RUR" type="number" value="0" min="0" step="0.01">
+                                </h5>
+                                <h5>
+                                    EUR:
+                                    <input name="EUR" type="number" value="0" min="0" step="0.01">
+                                </h5>
+                                <h5>
+                                    Name:
+                                    <input name="name" type="text">
+                                </h5>
+                                <h5>
+                                    Month:
+                                    <input name="month" type="text">
+                                </h5>
+                                 <form>
+                                     <script>
+                                         var modal_plan_add = document.getElementById('plan_addModal');
+                                         var btn_plan_add = document.getElementById("plan_add");
+                                         var span_plan_add = document.getElementById("close_plan_add");
+                                         btn_plan_add.onclick = function() {modal_plan_add.style.display = "block";}
+                                         span_plan_add.onclick = function() {modal_plan_add.style.display = "none";}
+                                         window.onclick = function(event) {if (event.target == modal_plan_add) {modal_plan_add.style.display = "none";}}
+                                     </script>
+                                     <style>
+                                         /* The Modal (background) */
+                                      .modal {
+                                          display: none; /* Hidden by default */
+                                          position: fixed; /* Stay in place */
+                                          z-index: 1; /* Sit on top */
+                                          padding-top: 100px; /* Location of the box */
+                                          left: 0;
+                                          top: 0;
+                                          width: 100%; /* Full width */
+                                          height: 100%; /* Full height */
+                                          overflow: auto; /* Enable scroll if needed */
+                                          background-color: rgb(0,0,0); /* Fallback color */
+                                          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                                      }
+
+                                         /* Modal Content */
+                                      .modal-content {
+                                          background-color: #fefefe;
+                                          margin: auto;
+                                          padding: 20px;
+                                          border: 1px solid #888;
+                                          width: 40%;
+                                      }
+
+                                         /* The Close Button */
+                                      .close {
+                                          color: #aaaaaa;
+                                          float: right;
+                                          font-size: 28px;
+                                          font-weight: bold;
+                                      }
+
+                                      .close:hover,
+                                      .close:focus {
+                                          color: #000;
+                                          text-decoration: none;
+                                          cursor: pointer;
+                                      }
+                                    </style>
+                                     <input type="submit" class="btn btn-outline-primary" value="Add Budget Plan">
+                                 </form>
+                             </form>
+                        </div>
+                      </div>
+        </div>
     </div>
   </div>
 {% endblock %}

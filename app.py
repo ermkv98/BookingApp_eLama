@@ -1,13 +1,9 @@
-from flask import Flask, request, redirect, url_for, render_template, session, g
-from flask_login import login_manager, LoginManager, AnonymousUserMixin
-from flask_sqlalchemy import SQLAlchemy, Pagination
+from flask import Flask, request, redirect, url_for, render_template, g
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, current_user
-from flask_wtf import Form, FlaskForm
 from forex_python.converter import CurrencyRates
-from wtforms import FloatField, StringField, PasswordField
-from wtforms.validators import InputRequired, AnyOf, DataRequired
 from datetime import datetime
-from flask_paginate import Pagination, get_page_parameter
 
 
 app = Flask(__name__)
@@ -44,9 +40,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
-    currency_USD = db.Column(db.Float)
-    currency_RUR = db.Column(db.Float)
-    currency_EUR = db.Column(db.Float)
+    currency_USD = db.Column(db.Float, default=0)
+    currency_RUR = db.Column(db.Float, default=0)
+    currency_EUR = db.Column(db.Float, default=0)
     name_first = db.Column(db.String(100))
     name_second = db.Column(db.String(100))
     roles = db.relationship('Role', secondary=roles_users,
@@ -55,6 +51,8 @@ class User(db.Model, UserMixin):
     whishes = db.relationship('Wish', backref='user', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
     plans = db.relationship('Plan', backref='user', lazy='dynamic')
+    categories = db.relationship('Category', backref='user', lazy='dynamic')
+    tags = db.relationship('Tag', backref='user', lazy='dynamic')
 
     def is_authenticated(self):
         return True
@@ -82,10 +80,11 @@ class Entry(db.Model):
     category = db.Column(db.String(100))
     type = db.Column(db.Boolean)
     date = db.Column(db.DateTime)
+    tags = db.relationship('Tag', backref='tag_entry', lazy='dynamic')
 
 
 class Wish(db.Model):
-    name = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100))
     wish_id = db.Column(db.Integer, primary_key=True)
     cost_USD = db.Column(db.Float)
     cost_RUR = db.Column(db.Float)
@@ -103,11 +102,24 @@ class Transaction(db.Model):
     transaction_id = db.Column(db.Integer, primary_key=True)
 
 
+class Tag(db.Model):
+    tag_id = db.Column(db.Integer, primary_key=True)
+    tag_name = db.Column(db.String(100))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    entry = db.Column(db.Integer, db.ForeignKey('entry.entry_id'))
+
+
+class Category(db.Model):
+    category_id = db.Column(db.Integer, primary_key=True)
+    category_name = db.Column(db.String(100))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+
 class Plan(db.Model):
     cost_USD = db.Column(db.Float)
     cost_RUR = db.Column(db.Float)
     cost_EUR = db.Column(db.Float)
-    name = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100))
     month = db.Column(db.String(20))
     plan_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -136,13 +148,29 @@ def redirect_to_home():
     return redirect('/1')
 
 
+@app.route('/plan_add', methods=['GET', 'POST'])
+@login_required
+def plan_add():
+    plan = Plan()
+    plan.cost_USD = request.form.get('EUR')
+    plan.cost_RUR = request.form.get('RUR')
+    plan.cost_EUR = request.form.get('EUR')
+    plan.name = request.form.get('name')
+    plan.month = request.form.get('month')
+    plan.user_id = g.user.id
+    db.session.add(plan)
+    db.session.commit()
+    return redirect(url_for('redirect_to_home', plan=plan))
+
+
 @app.route('/<int:page>')
 @login_required
 def index(page=1):
     entry = Entry.query.filter_by(user_id=g.user.id)
     currency_rate = CurrencyRates()
     entries = Entry.query.paginate(per_page=5, page=page, error_out=True)
-    return render_template('index.html', entry=entry, entries=entries, currency_rate=currency_rate)
+    plans = Plan.query.filter_by(user_id=g.user.id)
+    return render_template('index.html', entry=entry, plans=plans, entries=entries, currency_rate=currency_rate)
 
 
 @app.route('/add_entry', methods=['GET', 'POST'])
@@ -194,7 +222,9 @@ def entry_edit(entry_id):
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('profile.html')
+    tags = Tag.query.filter_by(user_id=g.user.id).all()
+    categories = Category.query.filter_by(user_id=g.user.id).all()
+    return render_template('profile.html', tags=tags, categories=categories)
 
 
 @app.route('/profile/edit', methods=['POST', 'GET'])
@@ -207,7 +237,7 @@ def edit():
         user.email = request.form.get("new email")
         db.session.commit()
         return redirect(url_for('profile'))
-    return render_template('profile_edit.html', user=g.user)
+    return render_template('profile.html', user=g.user)
 
 
 @app.route('/transactions', methods=['GET', 'POST'])
@@ -215,6 +245,46 @@ def edit():
 def transactions():
     transaction = Transaction.query.filter_by(user_id=g.user.id, id_to_sent=g.user.id)
     return render_template('transactions.html', transaction=transaction)
+
+
+@app.route('/tag_remove<tag_id>', methods=['GET', 'POST'])
+@login_required
+def tag_remove(tag_id):
+    tag = Tag.query.filter_by(tag_id=tag_id)
+    tag.delete()
+    db.session.commit()
+    return redirect(url_for('profile'))
+
+
+@app.route('/category', methods=['GET', 'POST'])
+@login_required
+def category():
+    category = Category()
+    category.category_name = request.form.get('category')
+    category.user_id = g.user.id
+    db.session.add(category)
+    db.session.commit()
+    return redirect(url_for('profile'))
+
+
+@app.route('/category_remove<category_id>', methods=['GET', 'POST'])
+@login_required
+def category_remove(category_id):
+    category = Category.query.filter_by(category_id=category_id)
+    category.delete()
+    db.session.commit()
+    return redirect(url_for('profile'))
+
+
+@app.route('/tag', methods=['GET', 'POST'])
+@login_required
+def tag():
+    tag = Tag()
+    tag.tag_name = request.form.get('tag')
+    tag.user_id = g.user.id
+    db.session.add(tag)
+    db.session.commit()
+    return redirect(url_for('profile'))
 
 
 @app.route('/transactions/add', methods=['GET', 'POST'])
@@ -271,10 +341,19 @@ def send():
         send.cost_USD = request.form.get("USD")
         send.date = datetime.now()
         send.id_to_sent = request.form.get("id to sent")
-        send.user_id = g.user.id
-        db.session.add(send)
-        db.session.commit()
-        return redirect(url_for('profile'))
+        user_recipient = User.query.filter_by(id=send.id_to_sent).first()
+        if user_recipient != None :
+            send.user_id = g.user.id
+            g.user.currency_RUR -= float(send.cost_RUR)
+            g.user.currency_EUR -= float(send.cost_EUR)
+            g.user.currency_USD -= float(send.cost_USD)
+            user_recipient.currency_RUR += float(send.cost_RUR)
+            user_recipient.currency_EUR += float(send.cost_EUR)
+            user_recipient.currency_USD += float(send.cost_USD)
+            db.session.add(send)
+            db.session.commit()
+            return redirect(url_for('profile'))
+        return render_template('transactions.html')
     return render_template('transactions.html')
 
 
