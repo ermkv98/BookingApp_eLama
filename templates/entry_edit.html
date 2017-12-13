@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://bootswatch.com/4/lux/bootstrap.css"/>
+    <meta charset="UTF-8">
+    <title>Transactions</title>
+</head>
+{% block content %}
+<body>
+<form method="post">
+     <div>
+        <h5>Date: {{ entry.date }}</h5>
+        <h4>
+            Name:
+            <input value="{{entry.name}}" name="Name">
+        </h4>
+        <h4>
+            Category:
+            <input value="{{entry.category}}" name="Category">
+        </h4>
+        <h4>
+            Cost USD:
+            <input value="{{entry.cost_USD}}" name="USD">
+        </h4>
+        <h4>
+            Cost EUR:
+            <input value="{{entry.cost_EUR}}" name="EUR">
+        </h4>
+        <h4>
+            Cost RUR:
+            <input value="{{entry.cost_RUR}}" name="RUR">
+        </h4>
+        <h4>
+            Type:
+            {% if entry.type == True %}
+            Prihod
+            {% else %}
+            Rashod
+            {% endif %}
+        </h4>
+        <input class="btn btn-primary" type="submit" value="Submit">
+    </div>
+</form>
+</body>
+{% endblock %}
+</html>
