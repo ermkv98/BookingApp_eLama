@@ -130,13 +130,19 @@ def inject_user():
         return {'user': None}
 
 
-@app.route('/<int:page_num>')
+@app.route('/')
 @login_required
-def index(page_num):
+def redirect_to_home():
+    return redirect('/1')
+
+
+@app.route('/<int:page>')
+@login_required
+def index(page=1):
     entry = Entry.query.filter_by(user_id=g.user.id)
     currency_rate = CurrencyRates()
-    entries = Entry.query.paginate(per_page=5, page=page_num, error_out=True)
-    return render_template('index.html', entry=entry,page_num=page_num, entries=entries, currency_rate=currency_rate)
+    entries = Entry.query.paginate(per_page=5, page=page, error_out=True)
+    return render_template('index.html', entry=entry, entries=entries, currency_rate=currency_rate)
 
 
 @app.route('/add_entry', methods=['GET', 'POST'])
@@ -157,8 +163,23 @@ def add_entry():
         entry.type = False
         db.session.add(entry)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('redirect_to_home'))
     return render_template('index.html')
+
+
+@app.route('/entry_delete<int:entry_id>')
+@login_required
+def entry_delete(entry_id):
+    entry = Entry.query.filter_by(entry_id=entry_id)
+    entry.delete()
+    db.session.commit()
+    return redirect(url_for('redirect_to_home'))
+
+
+@app.route('/entry_edit<int:entry_id>')
+@login_required
+def entry_edit(entry_id):
+    pass
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -205,7 +226,7 @@ def add():
         entry.type = True
         db.session.add(entry)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('redirect_to_home'))
     return render_template('index.html')
 
 
@@ -227,7 +248,7 @@ def decrease():
         entry.type = False
         db.session.add(entry)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('redirect_to_home'))
     return render_template('index.html')
 
 
@@ -263,19 +284,8 @@ def exchange():
             if second == "RUR":
                 g.user.currency_EUR -= input_currency
                 g.user.currency_RUR += currency.convert(input_currency, first, second)
-        return redirect(url_for('index'), first=first, second=second, input_currency=input_currency)
-    return redirect(url_for('index'))
-
-
-@app.route('/list')
-@login_required
-def list():
-    cursor = db.session.cursor(buffered=True)
-    select=("SELECT * FROM user")
-    cursor.execute(select)
-    data = cursor.fetchall()
-    db.session.commit()
-    return render_template('list.html', data=data)
+        return redirect(url_for('redirect_to_home'), first=first, second=second, input_currency=input_currency)
+    return redirect(url_for('redirect_to_home'))
 
 
 if __name__ == '__main__':
