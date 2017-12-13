@@ -176,17 +176,19 @@ def entry_delete(entry_id):
     return redirect(url_for('redirect_to_home'))
 
 
-@app.route('/entry_edit', methods=['POST', 'GET'])
+@app.route('/entry_edit?<int:entry_id>', methods=['POST', 'GET'])
 @login_required
-def entry_edit():
-    id = request.form.get('id')
-    entry = Entry.query.filter_by(entry_id=id)
-    entry.category = request.form.get('Category')
-    entry.name = request.form.get('Name')
-    entry.cost_RUR = request.form.get('RUR')
-    entry.cost_EUR = request.form.get('EUR')
-    entry.cost_USD = request.form.get('USD')
-    return redirect(url_for('redirect_to_home'))
+def entry_edit(entry_id):
+    entry = Entry.query.filter_by(entry_id=entry_id).first()
+    if request.method == 'POST':
+        entry.name = request.form.get('Name')
+        entry.category = request.form.get('Category')
+        entry.cost_USD = request.form.get('USD')
+        entry.cost_RUR = request.form.get('RUR')
+        entry.cost_EUR = request.form.get('EUR')
+        db.session.commit()
+        return redirect(url_for('redirect_to_home'))
+    return render_template('entry_edit.html', entry_id=entry_id, entry=entry)
 
 
 @app.route('/profile', methods=['GET', 'POST'])

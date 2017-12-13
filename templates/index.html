@@ -36,62 +36,7 @@
                 {% endif %}
             </td>
             <td>
-                 <div class="container">
-                      <button id="entry_edit" class="btn btn-link">Edit</button>
-                      <div id="entry_editModal" class="modal">
-                        <div class="modal-content">
-                           <span class="close" id="close_entry_edit">&times;</span>
-                             <form class="card-body text-primary" method="POST" action="/entry_edit">
-                                 <input type="hidden" name="id" value="{{ entry.entry_id }}">
-                                 <h1>
-                                      Date:
-                                      <h2>{{ entry.date }}</h2>
-                                  </h1>
-                                 <h1>
-                                      Category:
-                                      <input type="text" class="text-muted"  name="Category" value="{{ entry.category }}">
-                                  </h1>
-                                 <h1>
-                                      Name:
-                                      <input type="text" class="text-muted"  name="Name" value="{{ entry.name }}">
-                                  </h1>
-                                 <h1>
-                                      Cost EUR:
-                                      <input type="number" step="0.01" min="0" class="text-muted"  name="EUR" value="{{ entry.cost_EUR }}">
-                                  </h1>
-                                 <h1>
-                                      Cost RUR:
-                                      <input type="number" step="0.01" min="0" class="text-muted"  name="RUR" value="{{ entry.cost_RUR }}">
-                                  </h1>
-                                 <h1>
-                                      Cost USD:
-                                      <input type="number" step="0.01" min="0" class="text-muted"  name="USD" value="{{ entry.cost_USD }}">
-                                  </h1>
-                                 <h1>
-                                      Type:
-                                      <h2>
-                                          {% if entry.type == True %}
-                                          Prihod
-                                          {% else %}
-                                          Rashod
-                                          {% endif %}
-                                      </h2>
-                                  </h1>
-                                 <form>
-                                     <script>
-                                         var modal_entry_edit = document.getElementById('entry_editModal');
-                                         var btn_entry_edit = document.getElementById("entry_edit");
-                                         var span_entry_edit = document.getElementById("close_entry_edit");
-                                         btn_entry_edit.onclick = function() {modal_entry_edit.style.display = "block";}
-                                         span_entry_edit.onclick = function() {modal_entry_edit.style.display = "none";}
-                                         window.onclick = function(event) {if (event.target == modal_entry_edit) {modal_entry_edit.style.display = "none";}}
-                                     </script>
-                                     <input type="submit" class="btn btn-outline-primary"  value="Submit">
-                                 </form>
-                             </form>
-                        </div>
-                      </div>
-                  </div>
+                <a href="{{ url_for('entry_edit', entry_id=entry.entry_id) }}">Edit</a>
                 <a href="{{ url_for('entry_delete', entry_id=entry.entry_id) }}">Delete</a>
             </td>
           </tr>
