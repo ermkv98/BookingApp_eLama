@@ -15,8 +15,12 @@
             <input value="{{entry.name}}" name="Name">
         </h4>
         <h4>
-            Category:
-            <input value="{{entry.category}}" name="Category">
+           Category:
+            <select class="custom-select"  name="Category">
+                {% for category in categories %}
+                <option value="{{category.category_name}}">{{category.category_name}}</option>
+                {% endfor %}
+            </select>
         </h4>
         <h4>
             Cost USD:

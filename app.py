@@ -24,9 +24,15 @@ def load_user(user_id):
 
 login_manager.init_app(app)
 
+
+tags = db.Table('tags',
+                db.Column('tag_id', db.Integer, db.ForeignKey('tag.tag_id'), primary_key=True),
+                db.Column('entry_id', db.Integer, db.ForeignKey('entry.entry_id'), primary_key=True))
+
+
 roles_users = db.Table('roles_users',
-    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-    db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+                       db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+                       db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
 
 class Role(db.Model, RoleMixin):
@@ -80,7 +86,8 @@ class Entry(db.Model):
     category = db.Column(db.String(100))
     type = db.Column(db.Boolean)
     date = db.Column(db.DateTime)
-    tags = db.relationship('Tag', backref='tag_entry', lazy='dynamic')
+    tags = db.relationship('Tag', secondary=tags,
+                           backref=db.backref('entries', lazy='dynamic'))
 
 
 class Wish(db.Model):
@@ -106,7 +113,6 @@ class Tag(db.Model):
     tag_id = db.Column(db.Integer, primary_key=True)
     tag_name = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    entry = db.Column(db.Integer, db.ForeignKey('entry.entry_id'))
 
 
 class Category(db.Model):
@@ -152,7 +158,7 @@ def redirect_to_home():
 @login_required
 def plan_add():
     plan = Plan()
-    plan.cost_USD = request.form.get('EUR')
+    plan.cost_USD = request.form.get('USD')
     plan.cost_RUR = request.form.get('RUR')
     plan.cost_EUR = request.form.get('EUR')
     plan.name = request.form.get('name')
@@ -170,7 +176,8 @@ def index(page=1):
     currency_rate = CurrencyRates()
     entries = Entry.query.paginate(per_page=5, page=page, error_out=True)
     plans = Plan.query.filter_by(user_id=g.user.id)
-    return render_template('index.html', entry=entry, plans=plans, entries=entries, currency_rate=currency_rate)
+    categories = Category.query.filter_by(user_id=g.user.id)
+    return render_template('index.html', entry=entry, categories=categories, plans=plans, entries=entries, currency_rate=currency_rate)
 
 
 @app.route('/add_entry', methods=['GET', 'POST'])
@@ -207,6 +214,7 @@ def entry_delete(entry_id):
 @app.route('/entry_edit?<int:entry_id>', methods=['POST', 'GET'])
 @login_required
 def entry_edit(entry_id):
+    categories = Category.query.filter_by(user_id=g.user.id)
     entry = Entry.query.filter_by(entry_id=entry_id).first()
     if request.method == 'POST':
         entry.name = request.form.get('Name')
@@ -216,7 +224,7 @@ def entry_edit(entry_id):
         entry.cost_EUR = request.form.get('EUR')
         db.session.commit()
         return redirect(url_for('redirect_to_home'))
-    return render_template('entry_edit.html', entry_id=entry_id, entry=entry)
+    return render_template('entry_edit.html', entry_id=entry_id, entry=entry, categories=categories)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -265,6 +273,28 @@ def category():
     db.session.add(category)
     db.session.commit()
     return redirect(url_for('profile'))
+
+
+@app.route('/add_tag_to_entry<entry_id>', methods=['GET', 'POST'])
+@login_required
+def add_tag_to_entry(entry_id):
+    tags = Tag.query.filter_by(user_id=g.user_id)
+    pass
+
+
+@app.route('/remove_tag_from_entry<entry_id>', methods=['GET', 'POST'])
+@login_required
+def remove_tag_from_entry(entry_id):
+    pass
+
+
+@app.route('/plan_delete<plan_id>', methods=['GET', 'POST'])
+@login_required
+def plan_delete(plan_id):
+    plan = Plan.query.filter_by(plan_id=plan_id)
+    plan.delete()
+    db.session.commit()
+    return redirect(url_for('redirect_to_home'))
 
 
 @app.route('/category_remove<category_id>', methods=['GET', 'POST'])
